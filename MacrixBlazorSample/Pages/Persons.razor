@@ -1,0 +1,120 @@
+﻿@page "/persons"
+@using MacrixBlazorSample.Components.Persons
+@using MacrixBlazorSample.Services;
+@using MacrixSample.Shared.Dtos.Persons;
+@using global::AutoMapper;
+@inject HttpClient Http
+@inject IJSRuntime JsRuntime
+
+<PageTitle>Persons editor</PageTitle>
+
+<h1>Persons editor</h1>
+<button class="btn btn-primary" @onclick="AddPerson">Add Person</button>
+
+@if (isUpDate==false)
+{
+<button class="btn btn-primary" @onclick="SaveData">Save data</button>
+
+<button class="btn btn-primary" @onclick="Cancel">Cancel</button>
+}
+
+
+<p>Macrix person editor.</p>
+
+@if (persons == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>FirstName</th>
+                <th>LastName</th>
+                <th>StreetName</th>
+                <th>DateOfBirth</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var person in persons)
+            {
+                <PersonInList person=@person  OnDeletedCallback="OnDeleted" OnEditedCallback="OnEdited"> </PersonInList>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<PersonToGetDto> persons = new List<PersonToGetDto>();
+
+    private bool isUpDate = true;
+
+    [Inject]
+    public IPersonsService PersonsService { get; set; }
+
+    [Inject]
+    private IMapper mapper { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        isUpDate = true;
+        RefreshPersonsList();
+    }
+
+
+    private async void RefreshPersonsList()
+    {
+        persons = (await PersonsService.GetAllPersons()).ToList();
+        InvokeAsync(() => { StateHasChanged(); });
+
+    }
+
+    private async void OnDeleted()
+    {
+        isUpDate = false;
+        RefreshPersonsList();
+    }
+    private async void OnEdited()
+    {
+        isUpDate = false;
+        RefreshPersonsList();
+    }
+
+    private async void AddPerson()
+    {
+        isUpDate = false;
+        PersonToAddDto personToAddDto = new PersonToAddDto();
+        Random random = new Random();
+        personToAddDto.FirstName = new string[] { "Jan", "Zbigniew", "Ryszard" }[random.Next(3)];
+        personToAddDto.LastName = new string[] { "Nowak", "Kowalski", "Testowy" }[random.Next(3)];
+        personToAddDto.DateOfBirth = DateTime.Now;
+        personToAddDto.Town = "test";
+        personToAddDto.ApartmentNumber = "test";
+        personToAddDto.PhoneNumber = "123123123";
+        personToAddDto.PostalCode = "30-200";
+        personToAddDto.StreetName = "test";
+
+
+        await PersonsService.CreatePerson(personToAddDto);
+        RefreshPersonsList();
+    }
+
+    private async void SaveData()
+    {
+        isUpDate = true;
+        await JsRuntime.InvokeVoidAsync("alert", "Not implemented yet :(");
+
+    }
+    private async void Cancel()
+    {
+
+        isUpDate = true;
+        await JsRuntime.InvokeVoidAsync("alert", "Not implemented yet :(");
+
+    }
+
+
+}

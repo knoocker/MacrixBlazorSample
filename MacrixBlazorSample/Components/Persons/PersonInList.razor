@@ -1,0 +1,64 @@
+﻿@using MacrixBlazorSample.Services;
+@using MacrixSample.Shared.Dtos.Persons;
+@using System.Net;
+@using global::AutoMapper;
+
+@* <h3>PersonInList</h3> *@
+
+<tr>
+    <td>@person.FirstName</td>
+    <td>@person.LastName</td>
+    <td>@person.StreetName</td>
+    <td>@person.DateOfBirth</td>
+
+    <button @onclick="Edit">edit</button>
+    <button @onclick="Delete">delete</button>
+</tr>
+@* <InputCheckbox></InputCheckbox> *@
+
+@* 
+    <InputText @bind-Value=@person.FirstName ></InputText>
+    <InputText @bind-Value=@person.LastName></InputText> *@
+
+
+
+
+
+@* <button class="btn btn-primary" @onclick="IncrementCount">delete</button> *@
+
+@code {
+
+    [Inject]
+    public IPersonsService PersonsService { get; set; }
+
+    [Inject]
+    private IMapper mapper { get; set; }
+
+    [Parameter]
+    public EventCallback OnDeletedCallback { get; set; }
+
+
+    [Parameter]
+    public EventCallback OnEditedCallback { get; set; }
+
+    [Parameter]
+    public PersonToGetDto person { get; set; }
+
+
+    private async void Edit()
+    {
+        PersonToUpdateDto personToUpdateDto = mapper.Map<PersonToUpdateDto>(person);
+        personToUpdateDto.FirstName += "A";
+        await PersonsService.UpdatePerson(person.Id, personToUpdateDto);
+        await OnEditedCallback.InvokeAsync();
+
+
+    }
+    private async void Delete()
+    {
+
+        await PersonsService.DeletePerson(person.Id);
+        await OnDeletedCallback.InvokeAsync();
+    }
+
+}
